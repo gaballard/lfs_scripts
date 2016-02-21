@@ -471,6 +471,428 @@ make install
 cd ..
 rm -rf grep-2.23
 
+tar -xvf readline-6.3.tar.gz
+cd readline-6.3
+patch -Np1 -i ../readline-6.3-upstream_fixes-3.patch
+sed -i '/MV.*old/d' Makefile.in
+sed -i '/{OLDSUFF}/c:' support/shlib-install
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/readline-6.3
+make SHLIB_LIBS=-lncurses
+make SHLIB_LIBS=-lncurses install
+mv -v /usr/lib/lib{readline,history}.so.* /lib
+ln -sfv ../../lib/$(readlink /usr/lib/libreadline.so) /usr/lib/libreadline.so
+ln -sfv ../../lib/$(readlink /usr/lib/libhistory.so ) /usr/lib/libhistory.so
+install -v -m644 doc/*.{ps,pdf,html,dvi} /usr/share/doc/readline-6.3
+cd ..
+rm -rf readline-6.3
+
+tar -xvf bash-4.3.30.tar.gz
+cd bash-4.3.30
+patch -Np1 -i ../bash-4.3.30-upstream_fixes-3.patch
+./configure --prefix=/usr                       \
+            --docdir=/usr/share/doc/bash-4.3.30 \
+            --without-bash-malloc               \
+            --with-installed-readline
+make
+chown -Rv nobody .
+su nobody -s /bin/bash -c "PATH=$PATH make tests"
+make install
+mv -vf /usr/bin/bash /bin
+exec /bin/bash --login +h
+
+cd ..
+rm -rf bash-4.3.30
+
+tar -xvf bc-1.06.95.tar.bz2
+cd bc-1.06.95
+patch -Np1 -i ../bc-1.06.95-memory_leak-1.patch
+./configure --prefix=/usr           \
+            --with-readline         \
+            --mandir=/usr/share/man \
+            --infodir=/usr/share/info
+make
+echo "quit" | ./bc/bc -l Test/checklib.b
+make install
+cd ..
+rm -rf bc-1.06.95
+
+tar -xvf libtool-2.4.6.tar.xz
+cd libtool-2.4.6
+./configure --prefix=/usr
+make
+make check
+make install
+cd ..
+rm -rf libtool-2.4.6
+
+tar -xvf gdbm-1.11.tar.gz
+cd gdbm-1.11
+./configure --prefix=/usr \
+            --disable-static \
+            --enable-libgdbm-compat
+make
+make check
+make install
+cd ..
+rm -rf gdbm-1.11
+
+tar -xvf expat-2.1.0.tar.gz
+cd expat-2.1.0
+./configure --prefix=/usr --disable-static
+make
+make check
+make install
+install -v -dm755 /usr/share/doc/expat-2.1.0
+install -v -m644 doc/*.{html,png,css} /usr/share/doc/expat-2.1.0
+
+cd ..
+rm -rf expat-2.1.0
+
+tar -xvf inetutils-1.9.4.tar.xz
+cd inetutils-1.9.4
+./configure --prefix=/usr        \
+            --localstatedir=/var \
+            --disable-logger     \
+            --disable-whois      \
+            --disable-rcp        \
+            --disable-rexec      \
+            --disable-rlogin     \
+            --disable-rsh        \
+            --disable-servers
+make
+make check
+make install
+mv -v /usr/bin/{hostname,ping,ping6,traceroute} /bin
+mv -v /usr/bin/ifconfig /sbin
+cd ..
+rm -rf inetutils-1.9.4
+
+tar -xvf perl-5.22.1.tar.bz2
+cd perl-5.22.1
+echo "127.0.0.1 localhost $(hostname)" > /etc/hosts
+export BUILD_ZLIB=False
+export BUILD_BZIP2=0
+sh Configure -des -Dprefix=/usr                 \
+                  -Dvendorprefix=/usr           \
+                  -Dman1dir=/usr/share/man/man1 \
+                  -Dman3dir=/usr/share/man/man3 \
+                  -Dpager="/usr/bin/less -isR"  \
+                  -Duseshrplib
+make
+make -k test
+make install
+unset BUILD_ZLIB BUILD_BZIP2
+cd ..
+rm -rf perl-5.22.1
+
+tar -xvf XML-Parser-2.44.tar.gz
+cd XML-Parser-2.44
+perl Makefile.PL
+make
+make test
+make install
+cd ..
+rm -rf XML-Parser-2.44
+
+tar -xvf autoconf-2.69.tar.xz
+cd autoconf-2.69
+./configure --prefix=/usr
+make
+make check
+make install
+cd ..
+rm -rf autoconf-2.69
+
+tar -xvf automake-1.15.tar.xz
+cd automake-1.15
+sed -i 's:/\\\${:/\\\$\\{:' bin/automake.in
+./configure --prefix=/usr --docdir=/usr/share/doc/automake-1.15
+make
+sed -i "s:./configure:LEXLIB=/usr/lib/libfl.a &:" t/lex-{clean,depend}-cxx.sh
+make -j4 check
+make install
+cd ..
+rm -rf automake-1.15
+
+tar -xvf coreutils-8.25.tar.xz
+cd coreutils-8.25
+patch -Np1 -i ../coreutils-8.25-i18n-2.patch
+FORCE_UNSAFE_CONFIGURE=1 ./configure \
+            --prefix=/usr            \
+            --enable-no-install-program=kill,uptime
+FORCE_UNSAFE_CONFIGURE=1 make
+make NON_ROOT_USERNAME=nobody check-root
+echo "dummy:x:1000:nobody" >> /etc/group
+chown -Rv nobody . 
+su nobody -s /bin/bash \
+          -c "PATH=$PATH make RUN_EXPENSIVE_TESTS=yes check"
+sed -i '/dummy/d' /etc/group
+make install
+mv -v /usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo} /bin
+mv -v /usr/bin/{false,ln,ls,mkdir,mknod,mv,pwd,rm} /bin
+mv -v /usr/bin/{rmdir,stty,sync,true,uname} /bin
+mv -v /usr/bin/chroot /usr/sbin
+mv -v /usr/share/man/man1/chroot.1 /usr/share/man/man8/chroot.8
+sed -i s/\"1\"/\"8\"/1 /usr/share/man/man8/chroot.8
+mv -v /usr/bin/{head,sleep,nice,test,[} /bin
+cd ..
+rm -rf coreutils-8.25
+
+tar -xvf diffutils-3.3.tar.xz
+cd diffutils-3.3
+sed -i 's:= @mkdir_p@:= /bin/mkdir -p:' po/Makefile.in.in
+./configure --prefix=/usr
+make
+make check
+make install
+cd ..
+rm -rf diffutils-3.3
+
+tar -xvf gawk-4.1.3.tar.xz
+cd gawk-4.1.3
+./configure --prefix=/usr
+make
+make check
+make install
+mkdir -v /usr/share/doc/gawk-4.1.3
+cp    -v doc/{awkforai.txt,*.{eps,pdf,jpg}} /usr/share/doc/gawk-4.1.3
+cd ..
+rm -rf gawk-4.1.3
+
+tar -xvf findutils-4.6.0.tar.gz
+cd findutils-4.6.0
+./configure --prefix=/usr --localstatedir=/var/lib/locate
+make
+make check
+make install
+mv -v /usr/bin/find /bin
+sed -i 's|find:=${BINDIR}|find:=/bin|' /usr/bin/updatedb
+cd ..
+rm -rf findutils-4.6.0
+
+tar -xvf gettext-0.19.7.tar.xz
+cd gettext-0.19.7
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/gettext-0.19.7
+make
+make check
+make install
+chmod -v 0755 /usr/lib/preloadable_libintl.so
+cd ..
+rm -rf gettext-0.19.7
+
+tar -xvf intltool-0.51.0.tar.gz
+cd intltool-0.51.0
+sed -i 's:\\\${:\\\$\\{:' intltool-update.in
+./configure --prefix=/usr
+make
+make check
+make install
+install -v -Dm644 doc/I18N-HOWTO /usr/share/doc/intltool-0.51.0/I18N-HOWTO
+cd ..
+rm -rf intltool-0.51.0
+
+tar -xvf gperf-3.0.4.tar.gz
+cd gperf-3.0.4
+./configure --prefix=/usr --docdir=/usr/share/doc/gperf-3.0.4
+make
+make -j1 check
+make install
+cd ..
+rm -rf gperf-3.0.4
+
+tar -xvf groff-1.22.3.tar.gz
+cd groff-1.22.3
+PAGE=<paper_size> ./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf groff-1.22.3
+
+tar -xvf xz-5.2.2.tar.xz
+cd xz-5.2.2
+sed -e '/mf\.buffer = NULL/a next->coder->mf.size = 0;' \
+     -i src/liblzma/lz/lz_encoder.c
+./configure --prefix=/usr    \
+            --disable-static \
+            --docdir=/usr/share/doc/xz-5.2.2
+make
+make check
+make install
+mv -v   /usr/bin/{lzma,unlzma,lzcat,xz,unxz,xzcat} /bin
+mv -v /usr/lib/liblzma.so.* /lib
+ln -svf ../../lib/$(readlink /usr/lib/liblzma.so) /usr/lib/liblzma.so
+cd ..
+rm -rf xz-5.2.2
+
+tar -xvf grub-2.02~beta2.tar.xz
+cd grub-2.02~beta2
+./configure --prefix=/usr          \
+            --sbindir=/sbin        \
+            --sysconfdir=/etc      \
+            --disable-grub-emu-usb \
+            --disable-efiemu       \
+            --disable-werror
+make
+make install
+cd ..
+rm -rf grub-2.02~beta2
+
+tar -xvf less-481.tar.gz
+cd less-481
+./configure --prefix=/usr --sysconfdir=/etc
+make
+make install
+cd ..
+rm -rf less-481
+
+tar -xvf gzip-1.6.tar.xz
+cd gzip-1.6
+./configure --prefix=/usr --bindir=/bin
+make
+make check
+make install
+mv -v /bin/{gzexe,uncompress,zcmp,zdiff,zegrep} /usr/bin
+mv -v /bin/{zfgrep,zforce,zgrep,zless,zmore,znew} /usr/bin
+cd ..
+rm -rf gzip-1.6
+
+tar -xvf iproute2-4.4.0.tar.xz
+cd iproute2-4.4.0
+sed -i /ARPD/d Makefile
+sed -i 's/arpd.8//' man/man8/Makefile
+rm -v doc/arpd.sgml
+make
+make DOCDIR=/usr/share/doc/iproute2-4.4.0 install
+cd ..
+rm -rf iproute2-4.4.0
+
+tar -xvf kbd-2.0.3.tar.xz
+cd kbd-2.0.3
+patch -Np1 -i ../kbd-2.0.3-backspace-1.patch
+sed -i 's/\(RESIZECONS_PROGS=\)yes/\1no/g' configure
+sed -i 's/resizecons.8 //' docs/man/man8/Makefile.in
+PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr --disable-vlock
+make
+make check
+make install
+mkdir -v       /usr/share/doc/kbd-2.0.3
+cp -R -v docs/doc/* /usr/share/doc/kbd-2.0.3
+cd ..
+rm -rf kbd-2.0.3
+
+tar -xvf kmod-22.tar.xz
+cd kmod-22
+./configure --prefix=/usr          \
+            --bindir=/bin          \
+            --sysconfdir=/etc      \
+            --with-rootlibdir=/lib \
+            --with-xz              \
+            --with-zlib
+make
+make install
+
+for target in depmod insmod lsmod modinfo modprobe rmmod; do
+  ln -sv ../bin/kmod /sbin/$target
+done
+
+ln -sv kmod /bin/lsmod
+cd ..
+rm -rf kmod-22
+
+tar -xvf libpipeline-1.4.1.tar.gz
+cd libpipeline-1.4.1
+PKG_CONFIG_PATH=/tools/lib/pkgconfig ./configure --prefix=/usr
+make
+make check
+make install
+cd ..
+rm -rf libpipeline-1.4.1
+
+tar -xvf make-4.1.tar.bz2
+cd make-4.1
+./configure --prefix=/usr
+make
+make check
+make install
+cd ..
+rm -rf make-4.1
+
+tar -xvf patch-2.7.5.tar.xz
+cd patch-2.7.5
+./configure --prefix=/usr
+make
+make check
+make install
+cd ..
+rm -rf patch-2.7.5
+
+tar -xvf sysklogd-1.5.1.tar.gz
+cd sysklogd-1.5.1
+sed -i '/Error loading kernel symbols/{n;n;d}' ksym_mod.c
+make
+make BINDIR=/sbin install
+cat > /etc/syslog.conf << "EOF"
+# Begin /etc/syslog.conf
+
+auth,authpriv.* -/var/log/auth.log
+*.*;auth,authpriv.none -/var/log/sys.log
+daemon.* -/var/log/daemon.log
+kern.* -/var/log/kern.log
+mail.* -/var/log/mail.log
+user.* -/var/log/user.log
+*.emerg *
+
+# End /etc/syslog.conf
+EOF
+cd ..
+rm -rf sysklogd-1.5.1
+
+tar -xvf sysvinit-2.88dsf.tar.bz2
+cd sysvinit-2.88dsf
+
+cd ..
+rm -rf sysvinit-2.88dsf
+
+tar -xvf 
+cd 
+
+cd ..
+rm -rf 
+
+tar -xvf 
+cd 
+
+cd ..
+rm -rf 
+
+tar -xvf 
+cd 
+
+cd ..
+rm -rf 
+
+tar -xvf 
+cd 
+
+cd ..
+rm -rf 
+
+tar -xvf 
+cd 
+
+cd ..
+rm -rf 
+
+tar -xvf 
+cd 
+
+cd ..
+rm -rf 
+
 tar -xvf 
 cd 
 
