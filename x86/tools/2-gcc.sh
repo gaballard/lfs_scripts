@@ -1,3 +1,4 @@
+cd $LFS/sources
 tar -xvf gcc-5.3.0.tar.bz2
 cd gcc-5.3.0
 tar -xf ../mpfr-3.1.3.tar.xz

@@ -1,3 +1,4 @@
+cd $LFS/sources
 tar -xvf tcl-core8.6.4-src.tar.gz
 cd tcl-core8.6.4-src
 cd unix

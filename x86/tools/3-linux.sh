@@ -1,3 +1,4 @@
+cd $LFS/sources
 tar -xvf linux-4.4.1.tar.xz
 cd linux-4.4.1
 make mrproper

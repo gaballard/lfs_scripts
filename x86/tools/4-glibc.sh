@@ -1,3 +1,4 @@
+cd $LFS/sources
 tar -xvf glibc-2.22.tar.xz
 cd glibc-2.22
 patch -Np1 -i ../glibc-2.22-upstream_i386_fix-1.patch

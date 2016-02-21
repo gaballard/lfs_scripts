@@ -1,3 +1,4 @@
+cd $LFS/sources
 tar -xvf binutils-2.26.tar.bz2
 cd binutils-2.26
 mkdir -v build
