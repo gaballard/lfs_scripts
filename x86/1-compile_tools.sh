@@ -75,9 +75,9 @@ cp -rv dest/include/* /tools/include
 cd ..
 rm -rf linux-4.4.1
 
-tar -xvf glibc-2.22.tar.xz
-cd glibc-2.22
-patch -Np1 -i ../glibc-2.22-upstream_i386_fix-1.patch
+tar -xvf glibc-2.23.tar.xz
+cd glibc-2.23
+patch -Np1 -i ../glibc-2.23-upstream_i386_fix-1.patch
 mkdir -v build
 cd       build
 ../configure                             \
@@ -94,7 +94,7 @@ cd       build
 make
 make install
 cd ..
-rm -rf glibc-2.22
+rm -rf glibc-2.23
 
 tar -xvf gcc-5.3.0.tar.bz2
 cd gcc-5.3.0
